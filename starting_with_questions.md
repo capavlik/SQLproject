@@ -12,7 +12,7 @@ sessions_clean as (
 		case when city = '(not set)' or city = 'not available in demo dataset' then null
 		else city end city_clean,
 		case when totaltransactionrevenue::float is null then 0
-		else (totaltransactionrevenue::float/1000000) end revenue,visitid
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku,productquantity,transactions
 	from all_sessions),
 revenue as (
 	select sum(revenue) as total_revenue,country_clean as country_rev
@@ -20,8 +20,8 @@ revenue as (
 	group by country_rev),
 sessions_working as(		
 	select * from sessions_clean sc
-	join revenue r on sc.country_clean=r.country_rev)	
-
+	join revenue r on sc.country_clean=r.country_rev)
+	
 select country_clean,total_revenue,rank() over (order by total_revenue desc) as revenue_rank
 	from sessions_working
 where revenue > 0
@@ -55,7 +55,7 @@ By Country:
 1=United States($13,154)
 2=Israel($602)
 3=Australia($358)
-4=Canada($150)
+4=Canada($82)
 5=Switzerland($17)
 
 By Country,City:
@@ -82,6 +82,7 @@ sessions_clean as (
 products as (
 	select count(distinct productsku) as total_products,country_clean as country_rev
 	from sessions_clean
+	where revenue > 0
 	group by country_rev),
 sessions_working as(		
 	select * from sessions_clean sc
@@ -106,6 +107,7 @@ sessions_clean as (
 products as (
 	select count(distinct productsku) as total_products,city_clean as city_rev
 	from sessions_clean
+	where revenue>0
 	group by city_rev),
 sessions_working as(		
 	select * from sessions_clean sc
@@ -119,18 +121,18 @@ order by avg_products desc
 
 Answer:
 By Country:
-1=United States(494)
-2=Canada(244)
-3=Australia(128)
-4=Switzerland(68)
-5=Israel(56)
+1=United States(57)
+2=Canada(1)
+3=Australia(1)
+4=Switzerland(1)
+5=Israel(1)
 
 By Country,City:
-1=Mountain View,United States(326)
-2=New York,United States(275)
-3=San Francisco,United States(227)
-4=Sunnyvale,United States(201)
-5=San Jose,United States(168)
+1=San Francisco,United States(12)
+2=Mountain View,United States(8)
+3=New York,United States(8)
+4=Sunnyvale,United States(4)
+5=Palo ALto,United States(3)
 
 
 **Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
