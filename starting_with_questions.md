@@ -68,15 +68,69 @@ By Country,City:
 
 **Question 2: What is the average number of products ordered from visitors in each city and country?**
 
-
 SQL Queries:
+BY COUNTRY ONLY:
+with 
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+		else country end country_clean,
+		case when city = '(not set)' or city = 'not available in demo dataset' then null
+		else city end city_clean,
+		case when totaltransactionrevenue::float is null then 0
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku
+	from all_sessions),
+products as (
+	select count(distinct productsku) as total_products,country_clean as country_rev
+	from sessions_clean
+	group by country_rev),
+sessions_working as(		
+	select * from sessions_clean sc
+	join products p on sc.country_clean=p.country_rev)	
 
+select country_clean,avg(total_products) as avg_products
+	from sessions_working
+where revenue > 0
+group by country_clean
+order by avg_products desc
 
+BY CITY AND COUNTRY:
+with 
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+		else country end country_clean,
+		case when city = '(not set)' or city = 'not available in demo dataset' then null
+		else city end city_clean,
+		case when totaltransactionrevenue::float is null then 0
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku
+	from all_sessions),
+products as (
+	select count(distinct productsku) as total_products,city_clean as city_rev
+	from sessions_clean
+	group by city_rev),
+sessions_working as(		
+	select * from sessions_clean sc
+	join products p on sc.city_clean=p.city_rev)	
+
+select country_clean,city_clean,avg(total_products) as avg_products
+	from sessions_working
+where revenue > 0
+group by country_clean,city_clean
+order by avg_products desc
 
 Answer:
+By Country:
+1=United States(494)
+2=Canada(244)
+3=Australia(128)
+4=Switzerland(68)
+5=Israel(56)
 
-
-
+By Country,City:
+1=Mountain View,United States(326)
+2=New York,United States(275)
+3=San Francisco,United States(227)
+4=Sunnyvale,United States(201)
+5=San Jose,United States(168)
 
 
 **Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
