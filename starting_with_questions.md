@@ -69,7 +69,6 @@ By Country,City:
 **Question 2: What is the average number of products ordered from visitors in each city and country?**
 
 SQL Queries:
-BY COUNTRY ONLY:
 with 
 sessions_clean as (
 	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
@@ -77,24 +76,31 @@ sessions_clean as (
 		case when city = '(not set)' or city = 'not available in demo dataset' then null
 		else city end city_clean,
 		case when totaltransactionrevenue::float is null then 0
-		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productquantity
 	from all_sessions),
-products as (
-	select count(distinct productsku) as total_products,country_clean as country_rev
+prodquantity as (
+	select avg(productquantity::int) as avg_unitnumber,city_clean as city_unit
 	from sessions_clean
-	where revenue > 0
-	group by country_rev),
+	group by city_unit),
 sessions_working as(		
 	select * from sessions_clean sc
-	join products p on sc.country_clean=p.country_rev)	
+	join prodquantity p on sc.city_clean=p.city_unit)	
 
-select country_clean,avg(total_products) as avg_products
+select country_clean,city_clean,avg_unitnumber
 	from sessions_working
 where revenue > 0
-group by country_clean
-order by avg_products desc
+group by avg_unitnumber,country_clean,city_clean	
+order by avg_unitnumber desc
 
-BY CITY AND COUNTRY:
+Answer:
+Because unitnumbers were not recorded very often, there is not enough data to use this metric.
+Order quantity in Atlanta (4), Houston (2), and New York (1.17) are the only ones that are not 1.
+
+**Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
+
+SQL Queries:
+
+COUNT OF DISTINCT PRODUCTS ORDERED BY CITY AND COUNTRY:
 with 
 sessions_clean as (
 	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
@@ -119,46 +125,66 @@ where revenue > 0
 group by country_clean,city_clean
 order by avg_products desc
 
-Answer:
-By Country:
-1=United States(57)
-2=Canada(1)
-3=Australia(1)
-4=Switzerland(1)
-5=Israel(1)
+BY PRODUCT CATEOGORY:
+with 
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+		else country end country_clean,
+		case when city = '(not set)' or city = 'not available in demo dataset' then null
+		else city end city_clean,
+		case when totaltransactionrevenue::float is null then 0
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku,v2productcategory,v2productname
+	from all_sessions)
 
-By Country,City:
+select count(v2productcategory),city_clean,country_clean,v2productcategory from sessions_clean
+	where revenue>0
+	group by v2productcategory,country_clean,city_clean
+	order by country_clean,count desc
+
+Answer:
+Disinct Products ordered By Country,City:
 1=San Francisco,United States(12)
 2=Mountain View,United States(8)
 3=New York,United States(8)
 4=Sunnyvale,United States(4)
 5=Palo ALto,United States(3)
 
-
-**Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
-
-
-SQL Queries:
-
-
-
-Answer:
-
-
-
+Category of Products ordered by Country,City:
+Only one category of product was ordered by any country other than the US and Canada, and that was 
+for the Nest camera.
+Therefore, there doesn't seem to be enough orders for other products to see clear differences.
 
 
 **Question 4: What is the top-selling product from each city/country? Can we find any pattern worthy of noting in the products sold?**
 
-
 SQL Queries:
-
-
+with 
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+		else country end country_clean,
+		case when city = '(not set)' or city = 'not available in demo dataset' then null
+		else city end city_clean,
+		case when totaltransactionrevenue::float is null then 0
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid,productsku,v2productname
+	from all_sessions)
+select count(productsku) as total_products,city_clean as city_tp,v2productname,productsku
+	from sessions_clean
+	where revenue>0
+	group by city_tp,productsku,v2productname
+	order by total_products desc
 
 Answer:
 
+The top-selling product for every country is the Nest camera. We need to do a better job of 
+advertising products in other product categories.
 
+Most diversity in the number of products sold was within the US, where 31 different products were 
+sold, including apparel. However, the only product sold in other countries (except Canada), was the
+Nest camera.
 
+The only productsku that was ordered in any country/city combo more than once was:
+Nest Learning Thermostat Stainless(2) and Nest Protect Smoke Alarm (2) and they both had 'null'
+values for city within the US.
 
 
 **Question 5: Can we summarize the impact of revenue generated from each city/country?**
@@ -169,7 +195,7 @@ SQL Queries:
 
 Answer:
 
-
+Most of our sales come from the US.
 
 
 
