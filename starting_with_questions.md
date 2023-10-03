@@ -190,12 +190,40 @@ values for city within the US.
 **Question 5: Can we summarize the impact of revenue generated from each city/country?**
 
 SQL Queries:
+with 
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+		else country end country_clean,
+		case when city = '(not set)' or city = 'not available in demo dataset' then null
+		else city end city_clean,
+		case when totaltransactionrevenue::float is null then 0
+		else (totaltransactionrevenue::float/1000000) end revenue,visitid
+	from all_sessions),
+revenue_analysis as (
+	select 	distinct country_clean,city_clean, revenue,
+		sum(revenue) over (partition by city_clean) revenue_city,
+		sum(revenue) over (partition by country_clean) revenue_country,
+		sum(revenue) over () revenue_total		
+	from sessions_clean)
 
-
+select country_clean,city_clean,revenue_total,
+	case when revenue = 0 then 0
+		else ((revenue_city/revenue_country)*100) end citypercentofcountry,
+	case when (revenue = 0) then 0
+		else ((revenue_country/revenue_total)*100) end as countrypercentoftotal
+	from revenue_analysis
+	order by countrypercentoftotal desc
 
 Answer:
+Over 92% of sales come from the US, and more than 46% of those sales come from purchases where
+the city was not designated. Of cities that were identified within the US, San Francisco has the 
+most sales at almost 12% of the total in the US. Sunnyvale and Atlanta each have between 6-7%
+of remaining sales.
 
-Most of our sales come from the US.
+Israel makes up over 4% of sales overall, and 100% of those are from Tel Aviv-Yafo.
+
+Australia makes up another 2.5% of total sales, and all are from Sydney.
+
 
 
 
