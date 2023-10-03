@@ -31,7 +31,7 @@ select time,fullvisitorid, visitid, count(visitid) from all_sessions
 	
 --there are 549 rows where fullvisitorid and visitid are duplicated. 22 of those rows are duplicated more than
 --once, for a total of 527+46=573. These are duplicates, but none are from purchasers. Adding other variables to
---the 'group by' only decreased duplicates once, to 222 rows. I will drop these duplicate rows.
+--the 'group by' only decreased duplicates once, to 222 rows. If it is decided to drop duplicate rows, use code:
 
 delete from all_sessions a
 	using all_sessions b
@@ -41,15 +41,7 @@ where
 	and a.fullvisitorid=b.fullvisitorid
 	and a.time=b.time
 	
---224 records are deleted
---QA run that query again to assure no records are found...
-
-select time,fullvisitorid, visitid, count(visitid) from all_sessions
-	group by visitid, fullvisitorid,time
-	having count(visitid)>1
-		order by visitid
-		
---none found!
+--224 records would be deleted
 
 select distinct id,country,city from all_sessions
 	order by country
@@ -93,7 +85,7 @@ group by visitstarttime,userid,channelgrouping,socialengagementtype,visitid,visi
 having count(visitid)>1
 order by count(visitid)
 
---okay, something must be done.
+--If duplicate values are to be deleted, use code:
 
 delete from analytics a
 	using analytics b
@@ -108,11 +100,9 @@ where
 	and a.unitssold=b.unitssold
 	and a.visitnumber=b.visitnumber
 	
---QA check to see if we still have all our distinct visitids
+-- then run a QA check to see if we still have all our distinct visitids
 
 select distinct fullvisitid from analytics
-
---148,642 distinct visitid (same)
 
 select distinct revenue,fullvisitorid from analytics
 	where revenue is not null
