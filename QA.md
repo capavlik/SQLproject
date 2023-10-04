@@ -17,3 +17,6 @@ When combining the products,sales_report,and sales_by_sku I joined them then add
 2) where product name != to productname
 
 in order to be sure products were combined properly.
+
+During QA, it became apparent also that there were multiple product categories that each product was assigned to, as well as multiple prices that the 
+product was sold for.
