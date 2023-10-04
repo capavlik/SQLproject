@@ -10,3 +10,10 @@ I was looking for. It was corrected by parsing the data correctly in the cte tha
 I also describe in the data cleaning section several times when deleting duplicate rows where you should run the original query that identified the duplicates
 again afterward to confirm that they had been deleted. As well, as you are running the code to drop the rows, you can make note of how many rows were dropped
 and check that against how many you thought would be dropped by the original query you wrote to fing them.
+
+When combining the products,sales_report,and sales_by_sku I joined them then added a query at the bottom
+
+1) where sr.total_ordered::int != ss.total_ordered::int
+2) where product name != to productname
+
+in order to be sure products were combined properly.
