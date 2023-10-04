@@ -62,15 +62,52 @@ top 5 largest buyers by country (Australia,Israel). 85% of Nest sales come from 
 Francisco, Palo Alto, and Los Angeles are the biggest purchasers at 15%,11%,and 6% of sales.
 
 
-Question 2: 
+Question 2: --Q2 how did order revenue change from 2016 to 2017?
 
 SQL Queries:
 
+with
+sessions_clean as (
+	select 	case when country = '(not set)' or country = 'not available in demo dataset' then null
+				else country end country_clean,
+			case when city = '(not set)' or city = 'not available in demo dataset' then null
+				else city end city_clean,
+			case when totaltransactionrevenue::float is null then 0
+				else (totaltransactionrevenue::float/1000000) end revenue,
+			case when productprice::float is null then 0
+				else (productprice::float/1000000) end productprice,
+			visitid,to_date(date,'YYYYMMDD') as ord_date
+	from all_sessions
+--	where totaltransactionrevenue is not null
+),
+revenue_analysis as (
+	select 	country_clean,city_clean,revenue,productprice,visitid,ord_date,
+		sum(revenue) over (partition by city_clean) revenue_city,
+		sum(revenue) over (partition by country_clean) revenue_country,
+		sum(revenue) over () revenue_total,
+		extract(month from ord_date) as month,
+		extract(year from ord_date) as year,
+		extract(day from ord_date) as day
+	from sessions_clean)
+	
+select max(ord_date),min(ord_date) from revenue_analysis
+	group by year
+ 	
+--select sum(revenue) as yearly_revenue,year,country_clean from revenue_analysis
+--	group by country_clean,year
+	
+--select count (distinct month),year from revenue_analysis
+--	group by year
+
 Answer:
+There were only 5 months of data collection in 2016 (August 1 to December 31), and 7 in 2017 (January 1 to August 1).
+NO orders were placed outside of the US in 2016, while 4 additional countries ordered in 2017 (Australia,Switzerland,Canada, and Israel).
+Revenue in the US and overall more than doubled in 2017:
+US $4364 to $8790
+Overall $4364 to $9850
 
 
-
-Question 4: 
+Question 3: 
 
 SQL Queries:
 
