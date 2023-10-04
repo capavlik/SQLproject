@@ -142,7 +142,7 @@ select count(v2productcategory),city_clean,country_clean,v2productcategory from 
 	order by country_clean,count desc
 
 Answer:
-Disinct Products ordered By Country,City:
+Distinct Products ordered By Country,City:
 1=San Francisco,United States(12)
 2=Mountain View,United States(8)
 3=New York,United States(8)
