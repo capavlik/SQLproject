@@ -107,16 +107,47 @@ US $4364 to $8790
 Overall $4364 to $9850
 
 
-Question 3: 
+Question 3: What are the total sales overall for all products?
 
 SQL Queries:
 
+	with 
+all_products as (
+	select p.sku,p.name,p.orderedquantity::int as onsupplyorder,p.stocklevel::int,
+		case when ss.total_ordered::int is null then 0
+			else ss.total_ordered::int end total_sold,
+		case when sr.ratio::float is null then 0
+			else sr.ratio::float end
+	from sales_report sr
+	full outer join sales_by_sku ss on ss.product_sku = sr.productsku
+	full outer join products p on ss.product_sku = p.sku
+	where sku is not null and sku not like '9%'
+	),
+productprice_1 as (
+	select distinct productsku,
+	case when productprice::float is null then 0
+		else (productprice::float/1000000) end price
+	from all_sessions
+	where productsku not like '9%' and productsku not like '1%'
+	),
+productprice as (
+	select productsku,max(price) as price
+	from productprice_1
+	group by (productsku)
+	)
+select sum(total_sold*price) as grand_total_revenue
+	from all_products ap
+	join productprice pp on ap.sku=pp.productsku
+
 Answer:
 
+$138,965.12 for all products recorded.
 
+PART B: What is the value of all products that they currently have on order?
 
-Question 5: 
+$3,255,124.36 assuming standard 100% mark-up, they're on the hook for $1,627,562.
 
-SQL Queries:
-
-Answer:
+IF I HAD MORE TIME: How long it might take to burn through current inventory assuming that the company has been selling products for 1 year.
+BONUS: How long to burn through current + ordered inventory assuming same.
+BONUS BONUS: What kind of loan would they need to be able to pay for ordered inventory, and how much of current revenue will be diverted 
+     to that purpose based on continuing these sales trends?
